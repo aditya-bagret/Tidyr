@@ -1,7 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    // vitest.config.ts is loaded by Vite's native config loader, which needs the .ts extension.
+    "allowImportingTsExtensions": true
   },
   "include": ["src", "prisma", "tests", "*.ts"]
 }

@@ -1,3 +1,5 @@
 package-lock.json
 specs/
 references/
+apps/api/src/generated/
+apps/api/prisma/migrations/

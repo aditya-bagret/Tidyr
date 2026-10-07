@@ -12,6 +12,7 @@ export default defineConfig(
     '**/.next/',
     '**/.expo/',
     '**/next-env.d.ts',
+    'apps/api/src/generated/',
     'apps/mobile/android/',
     'apps/mobile/ios/',
   ]),
