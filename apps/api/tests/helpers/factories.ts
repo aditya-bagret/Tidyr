@@ -1,6 +1,14 @@
 // Test data factories (TEST_PLAN §1). Users are inserted directly so tests don't spend the
 // register limiter; logging in goes through the API like a real client.
-import type { AuthResult, CreateProjectInput, Project, TaskStatus, TokenPair } from '@tidyr/shared';
+import type {
+  AuthResult,
+  CreateProjectInput,
+  CreateTaskInput,
+  Project,
+  Task,
+  TaskStatus,
+  TokenPair,
+} from '@tidyr/shared';
 import { hashPassword } from '../../src/lib/password';
 import { prisma } from '../../src/lib/prisma';
 import { dataOf, type TestClient } from './http';
@@ -60,9 +68,23 @@ export async function createProject(
   return dataOf<Project>(res);
 }
 
+export async function createTask(
+  request: TestClient,
+  accessToken: string,
+  projectId: string,
+  overrides: Partial<Omit<CreateTaskInput, 'projectId'>> = {},
+): Promise<Task> {
+  const res = await request
+    .post('/api/tasks')
+    .set('Authorization', `Bearer ${accessToken}`)
+    .send({ projectId, name: 'Design hero section', ...overrides })
+    .expect(201);
+  return dataOf<Task>(res);
+}
+
 /**
- * Inserts a task row directly, numbering it like the tasks service will (SCHEMA §5). Used until
- * the tasks API exists (Phase 5), and afterwards for bulk setup.
+ * Inserts a task row directly, numbering it like the tasks service does (SCHEMA §5). For bulk
+ * setup that doesn't need to go through the API.
  */
 export async function insertTask(projectId: string, status: TaskStatus = 'PENDING') {
   return prisma.$transaction(async (tx) => {
