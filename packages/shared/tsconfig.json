@@ -1,9 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    // Platform-neutral: no DOM or Node typings.
-    "lib": ["ES2022"],
+    // DOM is here only for the WHATWG fetch/AbortController/TextEncoder/timer types, which browsers,
+    // React Native and Node 22 all provide. Browser-only globals are banned by ESLint (D-024).
+    "lib": ["ES2022", "DOM"],
     "types": []
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

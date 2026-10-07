@@ -50,5 +50,40 @@ export default defineConfig(
       ],
     },
   },
+  {
+    // @tidyr/shared runs in browsers, React Native and Node. Its tsconfig includes the DOM lib for
+    // the fetch types only, so platform-specific globals and imports are banned here (D-024).
+    files: ['packages/shared/**/*.ts'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        ...[
+          'window',
+          'document',
+          'navigator',
+          'location',
+          'localStorage',
+          'sessionStorage',
+          'indexedDB',
+          'process',
+          'Buffer',
+          'require',
+          '__dirname',
+          '__filename',
+        ].map((name) => ({ name, message: '@tidyr/shared must stay platform-neutral.' })),
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:*', 'react', 'react-dom', 'react-native', 'react-native/*', 'expo*'],
+              message: '@tidyr/shared must stay platform-neutral.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 );
