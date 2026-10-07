@@ -1,4 +1,4 @@
-import type { ErrorBody } from '@tidyr/shared';
+import type { DataResponse, ErrorBody } from '@tidyr/shared';
 import type { Express } from 'express';
 import supertest, { type Response } from 'supertest';
 import { createApp } from '../../src/app';
@@ -26,6 +26,11 @@ export function errorOf(res: { body: unknown }): ErrorBody['error'] {
   return (res.body as ErrorBody).error;
 }
 
+/** The typed `data` of a success response. */
+export function dataOf<T>(res: { body: unknown }): T {
+  return (res.body as DataResponse<T>).data;
+}
+
 /**
  * A supertest client whose every response is checked by `assertNoSensitiveFields`, so the T-X-08
  * check runs in every test that uses it. Each test file gets its own app (and limiter stores).
@@ -41,3 +46,5 @@ export function createClient(app: Express = createApp()) {
     options: (url: string) => agent.options(url).expect(assertNoSensitiveFields),
   };
 }
+
+export type TestClient = ReturnType<typeof createClient>;

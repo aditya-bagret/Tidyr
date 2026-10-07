@@ -12,7 +12,7 @@ describe('parseEnv', () => {
     expect(parseEnv(valid)).toMatchObject({
       NODE_ENV: 'development',
       PORT: 4000,
-      JWT_ACCESS_TTL: '15m',
+      JWT_ACCESS_TTL: 900,
       REFRESH_TOKEN_TTL_DAYS: 30,
       REFRESH_REUSE_GRACE_SECONDS: 30,
       BCRYPT_ROUNDS: 12,
@@ -46,6 +46,15 @@ describe('parseEnv', () => {
   it.each(['DATABASE_URL', 'JWT_SECRET', 'WEB_ORIGINS'] as const)('requires %s', (name) => {
     const { [name]: _omitted, ...rest } = valid;
     expect(() => parseEnv(rest)).toThrow(name);
+  });
+
+  it('parses JWT_ACCESS_TTL into seconds and rejects other formats', () => {
+    expect(parseEnv({ ...valid, JWT_ACCESS_TTL: '45s' }).JWT_ACCESS_TTL).toBe(45);
+    expect(parseEnv({ ...valid, JWT_ACCESS_TTL: '2h' }).JWT_ACCESS_TTL).toBe(7200);
+    expect(parseEnv({ ...valid, JWT_ACCESS_TTL: '1d' }).JWT_ACCESS_TTL).toBe(86_400);
+    for (const bad of ['15', '15 minutes', '0m', '-1m', '1.5h', '']) {
+      expect(() => parseEnv({ ...valid, JWT_ACCESS_TTL: bad })).toThrow('JWT_ACCESS_TTL');
+    }
   });
 
   it('rejects a non-Postgres DATABASE_URL and an invalid origin', () => {

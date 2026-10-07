@@ -2,12 +2,25 @@ import { z } from 'zod';
 
 const LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'] as const;
 
+const UNIT_SECONDS = { s: 1, m: 60, h: 3600, d: 86_400 } as const;
+const DURATION = /^([1-9]\d*)([smhd])$/;
+
+/** "15m" → 900. Parsed here so a typo fails at boot, not at the first login. */
+const durationInSeconds = z
+  .string()
+  .regex(DURATION, 'must be a duration like 900s, 15m, 1h or 1d')
+  .transform((value) => {
+    const [, amount, unit] = DURATION.exec(value) ?? [];
+    return Number(amount) * UNIT_SECONDS[unit as keyof typeof UNIT_SECONDS];
+  });
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
-  JWT_ACCESS_TTL: z.string().min(1).default('15m'),
+  /** Access-token lifetime in seconds. `prefault` runs the default through the parser. */
+  JWT_ACCESS_TTL: durationInSeconds.prefault('15m'),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
   REFRESH_REUSE_GRACE_SECONDS: z.coerce.number().int().nonnegative().default(30),
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),

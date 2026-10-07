@@ -42,6 +42,11 @@ export const unauthorized = (code: UnauthorizedCode, message: string) =>
 export const notFound = (resource = 'Resource') =>
   new AppError(404, 'NOT_FOUND', `${resource} not found`);
 
+export const emailTaken = () =>
+  new AppError(409, 'EMAIL_TAKEN', 'An account with this email already exists', [
+    { path: 'email', message: 'An account with this email already exists' },
+  ]);
+
 export const conflict = (message: string, details?: ErrorDetail[]) =>
   new AppError(409, 'CONFLICT', message, details);
 

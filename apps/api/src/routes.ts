@@ -1,6 +1,9 @@
 import { Router } from 'express';
+import { createAuthRouter } from './modules/auth/auth.routes';
 
-/** Mounts the feature routers under /api. Auth, projects, tasks and dashboard arrive in Phases 3–6. */
+/** Mounts the feature routers under /api. Projects, tasks and dashboard arrive in Phases 4–6. */
 export function createApiRouter() {
-  return Router();
+  const router = Router();
+  router.use('/auth', createAuthRouter());
+  return router;
 }
