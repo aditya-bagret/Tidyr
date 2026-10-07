@@ -1,4 +1,6 @@
 import type {
+  ActivityEntry,
+  ActivityQuery,
   CreateTaskInput,
   DataResponse,
   IdParam,
@@ -9,6 +11,7 @@ import type {
 } from '@tidyr/shared';
 import type { RequestHandler } from 'express';
 import { currentUser } from '../../middleware/authenticate';
+import * as audit from '../audit/audit.service';
 import * as tasksService from './tasks.service';
 
 export const list: RequestHandler = async (req, res) => {
@@ -42,4 +45,11 @@ export const remove: RequestHandler = async (req, res) => {
   const { id } = req.validated.params as IdParam;
   await tasksService.remove(currentUser(req).id, id);
   res.status(204).end();
+};
+
+export const activity: RequestHandler = async (req, res) => {
+  const { id } = req.validated.params as IdParam;
+  const query = req.validated.query as ActivityQuery;
+  const body: ListResponse<ActivityEntry> = await audit.listForTask(currentUser(req).id, id, query);
+  res.json(body);
 };

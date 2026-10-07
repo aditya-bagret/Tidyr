@@ -239,6 +239,18 @@ describe('GET /api/projects', () => {
     expect((await listProjects('?search=')).meta.total).toBe(4);
   });
 
+  it('treats an SQL-injection-like search as text (TEST_PLAN §5)', async () => {
+    await createProject(request, token, { name: 'Website Redesign' });
+    await createProject(request, otherToken, { name: 'Their website' });
+
+    for (const search of ["' OR 1=1 --", "'; DROP TABLE projects;--"]) {
+      const list = await listProjects(`?search=${encodeURIComponent(search)}`);
+      expect(list.data).toEqual([]);
+      expect(list.meta.total).toBe(0);
+    }
+    expect(await prisma.project.count()).toBe(2);
+  });
+
   it('rejects a search over 100 characters', async () => {
     const res = await request
       .get(`${PROJECTS}?search=${'a'.repeat(101)}`)

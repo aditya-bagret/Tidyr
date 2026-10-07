@@ -1,4 +1,5 @@
 import {
+  activityQuerySchema,
   createProjectSchema,
   idParamSchema,
   listProjectsQuerySchema,
@@ -9,7 +10,7 @@ import { authenticate } from '../../middleware/authenticate';
 import { validate } from '../../middleware/validate';
 import * as projectsController from './projects.controller';
 
-/** /api/projects (API_CONTRACT §5). `authenticate` runs before validation (D-031). */
+/** /api/projects (API_CONTRACT §5, activity §8). `authenticate` runs before validation (D-031). */
 export function createProjectsRouter() {
   const router = Router();
   router.use(authenticate);
@@ -23,6 +24,11 @@ export function createProjectsRouter() {
     projectsController.update,
   );
   router.delete('/:id', validate({ params: idParamSchema }), projectsController.remove);
+  router.get(
+    '/:id/activity',
+    validate({ params: idParamSchema, query: activityQuerySchema }),
+    projectsController.activity,
+  );
 
   return router;
 }

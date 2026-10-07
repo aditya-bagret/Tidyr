@@ -485,12 +485,12 @@ describe('GET /api/tasks', () => {
 
   it('T-TSK-26 treats an SQL-injection-like search as text: 200, empty, table intact', async () => {
     await seedTasks([{}, {}]);
-    const search = encodeURIComponent("'; DROP TABLE tasks;--");
 
-    const list = await listTasks(`?search=${search}`);
-
-    expect(list.data).toEqual([]);
-    expect(list.meta.total).toBe(0);
+    for (const search of ["'; DROP TABLE tasks;--", "' OR 1=1 --"]) {
+      const list = await listTasks(`?search=${encodeURIComponent(search)}`);
+      expect(list.data).toEqual([]);
+      expect(list.meta.total).toBe(0);
+    }
     expect(await prisma.task.count()).toBe(2);
     expect((await listTasks()).meta.total).toBe(2);
   });
