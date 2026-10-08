@@ -1,6 +1,7 @@
 'use client';
 
 import type { TaskDueFilter, TaskPriority } from '@tidyr/shared';
+import { cn } from 'cn';
 import { CheckIcon } from 'lucide-react';
 import { chipClassName } from '@/components/filter-chips';
 
@@ -15,10 +16,17 @@ interface QuickFiltersProps {
   priority: readonly TaskPriority[];
   onDueChange: (due: TaskDueFilter | undefined) => void;
   onPriorityChange: (priority: TaskPriority[]) => void;
+  className?: string;
 }
 
 /** DESIGN §3 QuickFilters: Overdue · Due this week · High priority (APP_FLOW F8). Each chip toggles a preset. */
-export function QuickFilters({ due, priority, onDueChange, onPriorityChange }: QuickFiltersProps) {
+export function QuickFilters({
+  due,
+  priority,
+  onDueChange,
+  onPriorityChange,
+  className,
+}: QuickFiltersProps) {
   const highOnly = priority.length === 1 && priority[0] === 'HIGH';
   const otherDue = due ? OTHER_DUE_LABEL[due] : undefined;
   const chips = [
@@ -41,7 +49,7 @@ export function QuickFilters({ due, priority, onDueChange, onPriorityChange }: Q
   ];
 
   return (
-    <div role="group" aria-label="Quick filters" className="flex flex-wrap gap-2">
+    <div role="group" aria-label="Quick filters" className={cn('flex flex-wrap gap-2', className)}>
       {chips.map((chip) => (
         <button
           key={chip.label}

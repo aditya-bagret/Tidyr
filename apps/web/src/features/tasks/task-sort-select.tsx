@@ -43,7 +43,11 @@ export function TaskSortSelect({ sort, order, onChange, className }: TaskSortSel
     >
       <SelectTrigger aria-label="Sort tasks" className={className}>
         <span className="text-neutral-600">Sort:</span>
-        <SelectValue placeholder="Custom" />
+        {/* Grows so the value sits next to "Sort:" rather than centred in a wide trigger (Radix
+            drops a className on SelectValue itself). */}
+        <span className="flex-1 text-left">
+          <SelectValue placeholder="Custom" />
+        </span>
       </SelectTrigger>
       <SelectContent position="popper" align="end">
         {OPTIONS.map((option) => (

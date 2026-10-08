@@ -5,7 +5,11 @@ import type { ReactNode } from 'react';
 type Tone = 'error' | 'warning' | 'info';
 
 const TONES: Record<Tone, { icon: LucideIcon; className: string }> = {
-  error: { icon: AlertCircleIcon, className: 'border-danger-600/20 bg-danger-50 text-danger-600' },
+  // danger.600 text on danger.50 is 4.4:1, under AA, so only the icon carries the colour.
+  error: {
+    icon: AlertCircleIcon,
+    className: 'border-danger-600/20 bg-danger-50 text-neutral-900 [&>svg]:text-danger-600',
+  },
   warning: {
     icon: AlertTriangleIcon,
     className: 'border-warning-600/20 bg-warning-50 text-neutral-900 [&>svg]:text-warning-600',

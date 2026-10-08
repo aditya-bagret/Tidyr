@@ -21,7 +21,7 @@ export function ProjectCard({ project, today }: { project: Project; today: strin
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className="truncate text-base font-semibold text-neutral-900">{project.name}</h2>
         <p className="line-clamp-2 min-h-10 text-sm text-neutral-600">
-          {project.description ?? <span className="text-neutral-400">No description</span>}
+          {project.description ?? <span className="italic">No description</span>}
         </p>
       </div>
       <ProjectDates startDate={project.startDate} endDate={project.endDate} today={today} />

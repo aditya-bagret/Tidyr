@@ -1,5 +1,6 @@
 'use client';
 
+import { CenteredPage } from '@/components/centered-page';
 import { ErrorState } from '@/components/error-state';
 import { useAuth } from './auth-provider';
 
@@ -7,8 +8,8 @@ import { useAuth } from './auth-provider';
 export function BootError({ error }: { error: unknown }) {
   const { retryBoot } = useAuth();
   return (
-    <main className="flex min-h-dvh items-center justify-center">
+    <CenteredPage>
       <ErrorState error={error} onRetry={retryBoot} />
-    </main>
+    </CenteredPage>
   );
 }

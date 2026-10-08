@@ -20,7 +20,16 @@ const PRIORITY_OPTIONS = [...TASK_PRIORITIES]
   .reverse()
   .map((value) => ({ value, label: TASK_PRIORITY_LABEL[value] }));
 
-const Divider = () => <span className="hidden h-5 w-px bg-neutral-200 md:block" aria-hidden />;
+// Only the 640–767 px wrapped layout drops it; the phone row scrolls, so the groups stay apart.
+const Divider = () => (
+  <span className="h-5 w-px shrink-0 bg-neutral-200 sm:max-md:hidden" aria-hidden />
+);
+
+// Below 640 px the chips are one sideways-scrolling row (like mobile) instead of four wrapped rows.
+// The vertical padding keeps the chips' enlarged hit areas and focus rings inside the scroller.
+const CHIP_ROW =
+  '-mx-4 flex items-center gap-x-3 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-y-2 sm:overflow-visible sm:p-0';
+const CHIP_GROUP = 'max-sm:flex-nowrap';
 
 interface TaskFiltersProps {
   state: TaskListState;
@@ -57,12 +66,13 @@ export function TaskFilters({ state, update, searchRef, actions }: TaskFiltersPr
           {actions}
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className={CHIP_ROW}>
         <FilterChips
           label="Filter by status"
           options={STATUS_OPTIONS}
           selected={state.status}
           onChange={(status) => update({ status })}
+          className={CHIP_GROUP}
         />
         <Divider />
         <FilterChips
@@ -70,6 +80,7 @@ export function TaskFilters({ state, update, searchRef, actions }: TaskFiltersPr
           options={PRIORITY_OPTIONS}
           selected={state.priority}
           onChange={(priority) => update({ priority })}
+          className={CHIP_GROUP}
         />
         <Divider />
         <QuickFilters
@@ -77,6 +88,7 @@ export function TaskFilters({ state, update, searchRef, actions }: TaskFiltersPr
           priority={state.priority}
           onDueChange={(due) => update({ due })}
           onPriorityChange={(priority) => update({ priority })}
+          className={CHIP_GROUP}
         />
         {hasTaskFilters(state) ? (
           <Button variant="link" size="sm" onClick={() => update(NO_TASK_FILTERS)}>

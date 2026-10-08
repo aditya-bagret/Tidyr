@@ -39,7 +39,7 @@ export function ProjectDates({
       </>
     );
   } else {
-    content = <span className="text-neutral-400">No dates</span>;
+    content = <span className="italic">No dates</span>;
   }
 
   return (

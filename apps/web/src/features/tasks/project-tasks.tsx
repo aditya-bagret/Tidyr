@@ -34,7 +34,10 @@ export function ProjectTasks({ projectId }: { projectId: string }) {
         <ViewToggle view={state.view} onChange={(view) => update({ view })} />
         <Button onClick={drawer.openCreate} aria-keyshortcuts="c" className="ml-auto">
           <PlusIcon aria-hidden />
-          Create task
+          <span className="sm:hidden">
+            New<span className="sr-only"> task</span>
+          </span>
+          <span className="hidden sm:inline">Create task</span>
           <kbd
             aria-hidden
             className="hidden rounded-sm bg-neutral-0/20 px-1.5 font-mono text-xs sm:inline"

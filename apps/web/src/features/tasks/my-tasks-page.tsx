@@ -41,9 +41,12 @@ export function MyTasksPage() {
               onRefresh={() => void query.refetch()}
               refreshing={query.isFetching && !query.isPending}
             />
-            <Button onClick={drawer.openCreate} aria-keyshortcuts="c" aria-label="Create task">
+            <Button onClick={drawer.openCreate} aria-keyshortcuts="c">
               <PlusIcon aria-hidden />
-              <span className="sm:hidden">New</span>
+              {/* The name always contains the visible words (WCAG 2.5.3), for voice control. */}
+              <span className="sm:hidden">
+                New<span className="sr-only"> task</span>
+              </span>
               <span className="hidden sm:inline">Create task</span>
             </Button>
           </>

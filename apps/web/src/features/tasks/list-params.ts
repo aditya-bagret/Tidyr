@@ -11,6 +11,7 @@ import {
 } from '@tidyr/shared';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
+import { readableQuery } from '@/lib/query-string';
 
 export const TASKS_PAGE_SIZE = 20;
 /** The board loads one page of up to the API's maximum and groups it into columns. */
@@ -79,7 +80,7 @@ export function serializeTaskListState(state: TaskListState, defaults: TaskSortD
   if (state.sort !== defaults.sort) params.set('sort', state.sort);
   if (state.order !== defaults.order && state.sort !== 'urgency') params.set('order', state.order);
   if (state.page > 1 && state.view === 'list') params.set('page', String(state.page));
-  return params.toString();
+  return readableQuery(params);
 }
 
 interface ParamsContext {
@@ -141,7 +142,7 @@ export function useTaskListState(defaults: TaskSortDefault) {
         const value = searchParams.get(name);
         if (value !== null) query.set(name, value);
       }
-      const url = query.size > 0 ? `${pathname}?${query.toString()}` : pathname;
+      const url = query.size > 0 ? `${pathname}?${readableQuery(query)}` : pathname;
       if (replace) router.replace(url, { scroll: false });
       else router.push(url, { scroll: false });
     },

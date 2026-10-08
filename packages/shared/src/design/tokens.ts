@@ -14,7 +14,8 @@ export const colors = {
   },
   danger: { 50: '#FEF2F2', 600: '#DC2626' },
   warning: { 50: '#FFFBEB', 600: '#D97706' },
-  success: { 50: '#F0FDF4', 600: '#16A34A' },
+  // 700 is for text on success.50: 600 there is only 3.2:1 (D-039).
+  success: { 50: '#F0FDF4', 600: '#16A34A', 700: '#15803D' },
   info: { 50: '#EFF6FF', 600: '#2563EB' },
 } as const;
 
@@ -68,13 +69,13 @@ export interface LozengeStyle {
 export const PROJECT_STATUS_STYLE: Record<ProjectStatus, LozengeStyle> = {
   NOT_STARTED: { background: colors.neutral[100], text: colors.neutral[600] },
   IN_PROGRESS: { background: colors.info[50], text: colors.info[600] },
-  COMPLETED: { background: colors.success[50], text: colors.success[600] },
+  COMPLETED: { background: colors.success[50], text: colors.success[700] },
 };
 
 export const TASK_STATUS_STYLE: Record<TaskStatus, LozengeStyle> = {
   PENDING: { background: colors.neutral[100], text: colors.neutral[600] },
   IN_PROGRESS: { background: colors.info[50], text: colors.info[600] },
-  COMPLETED: { background: colors.success[50], text: colors.success[600] },
+  COMPLETED: { background: colors.success[50], text: colors.success[700] },
 };
 
 export interface PriorityStyle {

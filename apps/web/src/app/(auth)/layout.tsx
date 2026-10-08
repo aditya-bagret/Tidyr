@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
+import { CenteredPage } from '@/components/centered-page';
 import { FullPageSpinner } from '@/components/full-page-spinner';
-import { Logo } from '@/components/logo';
 import { useAuth } from '@/features/auth/auth-provider';
 import { BootError } from '@/features/auth/boot-error';
 import { HOME_PATH } from '@/features/auth/routes';
@@ -20,10 +20,5 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   if (state.status === 'error') return <BootError error={state.error} />;
   if (state.status !== 'unauthenticated') return <FullPageSpinner />;
 
-  return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-10">
-      <Logo />
-      {children}
-    </main>
-  );
+  return <CenteredPage>{children}</CenteredPage>;
 }

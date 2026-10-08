@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { readableQuery } from '@/lib/query-string';
 
 // The element that opened the drawer (a row or card button). The drawer opens from the URL, so
 // Radix has no trigger to give focus back to on close (DESIGN §6). One drawer per page, so one slot.
@@ -36,7 +37,7 @@ export function useTaskDrawer() {
       query.delete('newTask');
       if (patch.task) query.set('task', patch.task);
       if (patch.newTask) query.set('newTask', '1');
-      const url = query.size > 0 ? `${pathname}?${query.toString()}` : pathname;
+      const url = query.size > 0 ? `${pathname}?${readableQuery(query)}` : pathname;
       router[mode](url, { scroll: false });
     },
     [searchParams, pathname, router],

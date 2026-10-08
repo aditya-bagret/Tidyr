@@ -23,6 +23,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh">
+      {/* DESIGN §6 keyboard path: the first Tab stop skips the sidebar and top bar. */}
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-md bg-neutral-0 px-3 py-2 text-sm font-medium text-brand-700 shadow-overlay focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+      >
+        Skip to content
+      </a>
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-30 hidden flex-col gap-6 border-r border-neutral-200 bg-neutral-0 px-3 py-4 md:flex lg:w-60',
@@ -82,7 +89,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <RefetchBar />
         </header>
-        <main className="mx-auto w-full max-w-content px-4 py-6 sm:px-6">{children}</main>
+        <main
+          id="main"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-content px-4 py-6 outline-none sm:px-6"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

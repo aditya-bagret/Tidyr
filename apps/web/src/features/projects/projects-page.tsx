@@ -132,10 +132,12 @@ export function ProjectsPage() {
             onRefresh={() => void query.refetch()}
             refreshing={query.isFetching && !query.isPending}
           />
-          <Button onClick={() => setCreating(true)} aria-label="New project">
+          <Button onClick={() => setCreating(true)}>
             <PlusIcon aria-hidden />
-            <span className="sm:hidden">New</span>
-            <span className="hidden sm:inline">New project</span>
+            {/* One flex item, so the button's gap doesn't widen the space between the words. */}
+            <span>
+              New<span className="max-sm:sr-only"> project</span>
+            </span>
           </Button>
         </div>
       </div>

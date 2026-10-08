@@ -20,7 +20,7 @@ interface FilterChipsProps<T extends string> {
 export function chipClassName(selected: boolean): string {
   return cn(
     // The ::after extends the hit area to 44 px without making the pill look bigger.
-    'relative inline-flex h-8 items-center gap-1 rounded-full border px-3 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5',
+    'relative inline-flex h-8 shrink-0 items-center gap-1 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5',
     selected
       ? 'border-brand-600/30 bg-brand-50 text-brand-700'
       : 'border-neutral-200 bg-neutral-0 text-neutral-600 hover:bg-neutral-100',

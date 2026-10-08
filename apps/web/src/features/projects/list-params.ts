@@ -9,6 +9,7 @@ import {
 } from '@tidyr/shared';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
+import { readableQuery } from '@/lib/query-string';
 
 /** 12 fills the 3 / 2 / 1-column grid (DESIGN §4.2) on every breakpoint. */
 export const PROJECTS_PAGE_SIZE = 12;
@@ -50,7 +51,7 @@ export function serializeProjectListState(state: ProjectListState): string {
   if (state.sort !== DEFAULT_SORT) params.set('sort', state.sort);
   if (state.order !== DEFAULT_ORDER) params.set('order', state.order);
   if (state.page > 1) params.set('page', String(state.page));
-  return params.toString();
+  return readableQuery(params);
 }
 
 export function toProjectListParams(state: ProjectListState): ListProjectsParams {

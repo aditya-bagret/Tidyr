@@ -34,28 +34,27 @@ export function TaskRow({ task, today, onOpen, onUpdate, showProject = false }: 
         className="z-10 mt-0.5 sm:mt-0"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-baseline gap-2 sm:items-center">
-          <TaskKey value={task.key} className="relative z-10" />
-          {/* The button's ::after covers the row, so a click anywhere opens the drawer. */}
-          <button
-            type="button"
-            onClick={() => onOpen(task.id)}
-            className={cn(
-              'min-w-0 truncate text-left text-sm after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:after:rounded-sm focus-visible:after:ring-2 focus-visible:after:ring-brand-600 focus-visible:after:ring-inset',
-              completed ? 'text-neutral-600 line-through' : 'text-neutral-900',
-            )}
-          >
-            {task.name}
-          </button>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex min-w-0 items-baseline gap-2 sm:items-center">
+            <TaskKey value={task.key} className="relative z-10" />
+            {/* The button's ::after covers the row, so a click anywhere opens the drawer. */}
+            <button
+              type="button"
+              onClick={() => onOpen(task.id)}
+              className={cn(
+                'min-w-0 truncate text-left text-sm after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:after:rounded-sm focus-visible:after:ring-2 focus-visible:after:ring-brand-600 focus-visible:after:ring-inset',
+                completed ? 'text-neutral-600 line-through' : 'text-neutral-900',
+              )}
+            >
+              {task.name}
+            </button>
+          </div>
+          {/* Below 1024 px a project column would squeeze the name, so it goes underneath. */}
+          {showProject ? <ProjectName name={task.project.name} className="lg:hidden" /> : null}
         </div>
         <div className="flex items-center gap-3 sm:shrink-0">
           {showProject ? (
-            <span
-              className="max-w-40 truncate text-xs text-neutral-600 sm:w-40 sm:text-right"
-              title={task.project.name}
-            >
-              {task.project.name}
-            </span>
+            <ProjectName name={task.project.name} className="hidden w-40 text-right lg:block" />
           ) : null}
           <PriorityIcon
             priority={task.priority}
@@ -71,12 +70,20 @@ export function TaskRow({ task, today, onOpen, onUpdate, showProject = false }: 
               className="relative z-10"
             />
           </span>
-          <span className="sm:w-36 sm:text-right">
+          <span className="whitespace-nowrap sm:w-36 sm:text-right">
             <DueDate date={task.dueDate} status={task.status} today={today} />
           </span>
         </div>
       </div>
     </li>
+  );
+}
+
+function ProjectName({ name, className }: { name: string; className?: string }) {
+  return (
+    <span className={cn('truncate text-xs text-neutral-600', className)} title={name}>
+      {name}
+    </span>
   );
 }
 

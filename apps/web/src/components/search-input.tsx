@@ -79,7 +79,7 @@ export function SearchInput({
         }}
         aria-label={label}
         placeholder={placeholder}
-        className="h-10 w-full rounded-md border border-input bg-card pr-10 pl-9 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-search-cancel-button]:appearance-none"
+        className="h-10 w-full rounded-md border border-input bg-card pr-10 pl-9 text-sm text-neutral-900 placeholder:text-muted-foreground focus-visible:border-ring [&::-webkit-search-cancel-button]:appearance-none"
       />
       {text !== '' ? (
         <button
