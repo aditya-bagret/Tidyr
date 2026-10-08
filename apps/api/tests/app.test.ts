@@ -27,6 +27,55 @@ describe('GET /api/health', () => {
   });
 });
 
+describe('client IP behind proxies (D-035)', () => {
+  // The X-Forwarded-For shape Render delivers: client, Cloudflare edge, Render-internal hop. Both
+  // proxy addresses rotate between requests. Supertest's loopback peer plays the in-container proxy.
+  const viaRender = (client: string, hop: number) => `${client}, 172.71.0.${hop}, 10.25.0.${hop}`;
+  const remaining = (res: { headers: Record<string, string> }) =>
+    Number(/remaining=(\d+)/.exec(res.headers.ratelimit ?? '')?.[1]);
+
+  async function freshClient(trustProxyHops?: string) {
+    if (trustProxyHops !== undefined) vi.stubEnv('TRUST_PROXY_HOPS', trustProxyHops);
+    vi.resetModules();
+    const { createApp } = await import('../src/app');
+    return createClient(createApp());
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('keys limits by the client with TRUST_PROXY_HOPS=3, whatever the proxy hops or a spoofed prefix', async () => {
+    const client = await freshClient('3');
+    const first = await client
+      .get('/api/unknown')
+      .set('X-Forwarded-For', viaRender('203.0.113.7', 1));
+    const rotated = await client
+      .get('/api/unknown')
+      .set('X-Forwarded-For', viaRender('203.0.113.7', 2));
+    const spoofed = await client
+      .get('/api/unknown')
+      .set('X-Forwarded-For', `198.51.100.99, ${viaRender('203.0.113.7', 3)}`);
+    const other = await client
+      .get('/api/unknown')
+      .set('X-Forwarded-For', viaRender('203.0.113.8', 1));
+
+    expect(remaining(rotated)).toBe(remaining(first) - 1);
+    expect(remaining(spoofed)).toBe(remaining(first) - 2);
+    expect(remaining(other)).toBe(remaining(first));
+  });
+
+  it('ignores X-Forwarded-For by default (no proxy in front)', async () => {
+    // express-rate-limit warns once that the header is set while no proxy is trusted.
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = await freshClient();
+    const first = await client.get('/api/unknown').set('X-Forwarded-For', '203.0.113.7');
+    const spoofed = await client.get('/api/unknown').set('X-Forwarded-For', '198.51.100.99');
+
+    expect(remaining(spoofed)).toBe(remaining(first) - 1);
+  });
+});
+
 describe('T-X-01 unknown route', () => {
   it.each(['/api/does-not-exist', '/nope', '/api/health/extra'])(
     '%s → 404 envelope',

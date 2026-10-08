@@ -36,11 +36,13 @@ trap 'rm -rf "$WORK"' EXIT
 STATUS=""
 STEP=""
 
-# request METHOD PATH [TOKEN] [JSON_BODY] → sets STATUS; body in $WORK/body, headers in $WORK/headers.
+# request METHOD PATH [TOKEN] [JSON_BODY] [HEADER] → sets STATUS; body in $WORK/body, headers in
+# $WORK/headers.
 request() {
-  local method="$1" path="$2" token="${3:-}" body="${4:-}"
+  local method="$1" path="$2" token="${3:-}" body="${4:-}" header="${5:-}"
   local args=(-sS -X "$method" -o "$WORK/body" -D "$WORK/headers" -w '%{http_code}' --max-time 30)
   [[ -n "$token" ]] && args+=(-H "Authorization: Bearer $token")
+  [[ -n "$header" ]] && args+=(-H "$header")
   [[ -n "$body" ]] && args+=(-H 'Content-Type: application/json' --data "$body")
   STATUS="$(curl "${args[@]}" "$API$path")" || STATUS="000"
 }
@@ -276,19 +278,25 @@ request GET "/projects/$PROJECT_ID" "$TOKEN_A"
 expect_error 404 NOT_FOUND
 pass
 
-# --- Login rate limit (throwaway email; RATE_LIMIT_AUTH_MAX failures, then 429) ------------------
-STEP="login rate limit → 429 RATE_LIMITED with Retry-After"
+# --- Login rate limit (throwaway email) ---------------------------------------------------------
+# Exactly RATE_LIMIT_AUTH_MAX failures (read from the RateLimit header), then 429. Every attempt
+# claims a different client in X-Forwarded-For: if the API trusted that, or keyed on a rotating
+# proxy address instead of the client, the 429 would come late or never (D-035).
+STEP="login rate limit → 429 RATE_LIMITED after exactly RATE_LIMIT_AUTH_MAX failures"
 LIMIT_BODY="$(jq -nc --arg e "$EMAIL_LIMIT" '{email: $e, password: "wrong-pass-1"}')"
-attempts=0
-while (( attempts < 30 )); do
-  attempts=$((attempts + 1))
-  request POST /auth/login "" "$LIMIT_BODY"
-  [[ "$STATUS" == "429" ]] && break
+spoof() { echo "X-Forwarded-For: 198.51.100.$1"; }
+request POST /auth/login "" "$LIMIT_BODY" "$(spoof 1)"
+expect_error 401 INVALID_CREDENTIALS
+LIMIT="$(grep -i '^ratelimit:' "$WORK/headers" | sed -E 's/.*limit=([0-9]+).*/\1/' | tr -d '\r')"
+[[ "$LIMIT" =~ ^[0-9]+$ ]] || fail "no RateLimit header"
+for ((attempt = 2; attempt <= LIMIT; attempt++)); do
+  request POST /auth/login "" "$LIMIT_BODY" "$(spoof "$attempt")"
   expect_error 401 INVALID_CREDENTIALS
 done
+request POST /auth/login "" "$LIMIT_BODY" "$(spoof $((LIMIT + 1)))"
 expect_error 429 RATE_LIMITED
 grep -qi '^retry-after:' "$WORK/headers" || fail "no Retry-After header"
-STEP="$STEP (after $((attempts - 1)) failed attempts)"
+STEP="$STEP ($LIMIT)"
 pass
 
 STEP="another account still logs in from the same IP"

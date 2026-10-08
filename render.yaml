@@ -22,6 +22,9 @@ services:
         value: production
       - key: LOG_LEVEL
         value: info
+      # Cloudflare → Render's edge → a proxy inside the container: req.ip skips all three (D-035).
+      - key: TRUST_PROXY_HOPS
+        value: '3'
       # Neon's direct (non-pooled) connection string, with ?sslmode=require.
       - key: DATABASE_URL
         sync: false

@@ -37,6 +37,8 @@ const envSchema = z.object({
   RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().default(10),
   RATE_LIMIT_REGISTER_MAX: z.coerce.number().int().positive().default(10),
   RATE_LIMIT_API_MAX: z.coerce.number().int().positive().default(300),
+  /** Trusted proxies in front of the API: 0 locally, 3 on Render (D-035). */
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
 });
 
 export type Env = z.infer<typeof envSchema>;

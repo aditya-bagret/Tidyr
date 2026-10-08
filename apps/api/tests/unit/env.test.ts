@@ -20,6 +20,7 @@ describe('parseEnv', () => {
       RATE_LIMIT_AUTH_MAX: 10,
       RATE_LIMIT_REGISTER_MAX: 10,
       RATE_LIMIT_API_MAX: 300,
+      TRUST_PROXY_HOPS: 0,
       WEB_ORIGINS: ['http://localhost:3000', 'https://tidyr.vercel.app'],
     });
   });
@@ -54,6 +55,13 @@ describe('parseEnv', () => {
     expect(parseEnv({ ...valid, JWT_ACCESS_TTL: '1d' }).JWT_ACCESS_TTL).toBe(86_400);
     for (const bad of ['15', '15 minutes', '0m', '-1m', '1.5h', '']) {
       expect(() => parseEnv({ ...valid, JWT_ACCESS_TTL: bad })).toThrow('JWT_ACCESS_TTL');
+    }
+  });
+
+  it('accepts a proxy hop count and rejects a negative or fractional one', () => {
+    expect(parseEnv({ ...valid, TRUST_PROXY_HOPS: '3' }).TRUST_PROXY_HOPS).toBe(3);
+    for (const bad of ['-1', '1.5', 'true']) {
+      expect(() => parseEnv({ ...valid, TRUST_PROXY_HOPS: bad })).toThrow('TRUST_PROXY_HOPS');
     }
   });
 

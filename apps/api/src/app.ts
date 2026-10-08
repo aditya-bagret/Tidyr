@@ -28,8 +28,10 @@ const corsOptions: CorsOptions = {
 export function createApp() {
   const app = express();
 
-  // Render terminates TLS in front of us; without this every client shares the proxy's IP.
-  app.set('trust proxy', 1);
+  // req.ip (and so every rate-limit key) must be the client, not a proxy. Each trusted hop is one
+  // right-most X-Forwarded-For entry; Render puts three proxies in front of us, and entries a client
+  // prepends itself stay untrusted (D-035).
+  app.set('trust proxy', env.TRUST_PROXY_HOPS);
 
   app.use(requestId);
   app.use(
