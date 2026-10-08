@@ -1,0 +1,33 @@
+# Render Blueprint for the Tidyr API (TECHNICAL_REQUIREMENTS §12). Secrets are never stored here:
+# keys marked `sync: false` are entered in the Render dashboard when the Blueprint is created.
+services:
+  - type: web
+    name: tidyr-api
+    runtime: node
+    plan: free
+    # Same region as the Neon database (AWS ap-southeast-1) to keep query latency low.
+    region: singapore
+    branch: main
+    # No rootDir: npm workspaces need the root package-lock.json.
+    # --include=dev because NODE_ENV=production would skip prisma, tsup and friends. The API build
+    # runs `prisma generate` + tsup; `db:deploy` applies pending migrations (`prisma migrate deploy`).
+    buildCommand: npm ci --include=dev && npm run build -w @tidyr/api && npm run db:deploy -w @tidyr/api
+    startCommand: node apps/api/dist/server.js
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      # Neon's direct (non-pooled) connection string, with ?sslmode=require.
+      - key: DATABASE_URL
+        sync: false
+      # At least 32 characters: openssl rand -hex 32
+      - key: JWT_SECRET
+        sync: false
+      # Comma-separated web origins for CORS. Add the Vercel URL in Phase 11.
+      - key: WEB_ORIGINS
+        sync: false
