@@ -12,6 +12,8 @@ import {
   projectKeySchema,
   registerFormSchema,
   registerSchema,
+  TASK_SORT_FIELDS,
+  taskFormSchema,
   updateProjectSchema,
   updateTaskSchema,
 } from '../src';
@@ -131,6 +133,45 @@ describe('createProjectSchema (T-SH-03)', () => {
   it('caps description at 5000 characters', () => {
     expect(nullableDescription.safeParse('x'.repeat(5000)).success).toBe(true);
     expect(nullableDescription.safeParse('x'.repeat(5001)).success).toBe(false);
+  });
+});
+
+describe('taskFormSchema (web task drawer)', () => {
+  const blank = {
+    projectId: PROJECT_ID,
+    name: ' Design hero section ',
+    description: '',
+    priority: 'MEDIUM',
+    status: 'PENDING',
+    dueDate: '',
+  } as const;
+
+  it('trims the name and turns an empty description and due date into null', () => {
+    expect(taskFormSchema.parse(blank)).toEqual({
+      projectId: PROJECT_ID,
+      name: 'Design hero section',
+      description: null,
+      priority: 'MEDIUM',
+      status: 'PENDING',
+      dueDate: null,
+    });
+  });
+
+  it('output passes createTaskSchema', () => {
+    const output = taskFormSchema.parse({ ...blank, dueDate: '2026-10-20', status: 'COMPLETED' });
+    expect(createTaskSchema.safeParse(output).success).toBe(true);
+  });
+
+  it.each([
+    ['no project', { projectId: '' }, 'projectId', 'Required'],
+    ['a whitespace-only name', { name: '   ' }, 'name', 'Required'],
+    ['a 201-character name', { name: 'x'.repeat(201) }, 'name', 'Must be at most 200 characters'],
+    ['an impossible date', { dueDate: '2026-02-30' }, 'dueDate', undefined],
+  ])('rejects %s', (_label, override, path, message) => {
+    const result = taskFormSchema.safeParse({ ...blank, ...override });
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toEqual([path]);
+    if (message) expect(result.error?.issues[0]?.message).toBe(message);
   });
 });
 
@@ -268,6 +309,13 @@ describe('list query schemas (T-SH-07)', () => {
 
   it.each(['0', '101', '2.5', 'abc'])('rejects limit=%s', (limit) => {
     expect(listTasksQuerySchema.safeParse({ limit }).success).toBe(false);
+  });
+
+  it('accepts every task sort, including urgency (D-038)', () => {
+    for (const sort of TASK_SORT_FIELDS) {
+      expect(listTasksQuerySchema.parse({ sort }).sort).toBe(sort);
+    }
+    expect(TASK_SORT_FIELDS).toContain('urgency');
   });
 
   it('rejects page=0, an unknown sort, a bad due filter and a bad projectId', () => {

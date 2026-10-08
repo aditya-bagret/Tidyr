@@ -24,15 +24,23 @@ import { parseTaskKey } from './taskKey';
 
 const AUDITED_FIELDS = ['name', 'description', 'priority', 'status', 'dueDate'] as const;
 
-// `id` breaks ties so pages never overlap or skip rows that share a sort value.
-const ORDER_BY: Record<TaskSortField, (order: SortOrder) => Prisma.TaskOrderByWithRelationInput> = {
-  createdAt: (order) => ({ createdAt: order }),
-  updatedAt: (order) => ({ updatedAt: order }),
-  name: (order) => ({ name: order }),
-  // `task_priority` is a Postgres enum, which sorts in declaration order: LOW < MEDIUM < HIGH.
-  priority: (order) => ({ priority: order }),
-  dueDate: (order) => ({ dueDate: { sort: order, nulls: 'last' } }),
-};
+// `id` breaks ties (appended in `list`) so pages never overlap or skip rows that share a sort value.
+const ORDER_BY: Record<TaskSortField, (order: SortOrder) => Prisma.TaskOrderByWithRelationInput[]> =
+  {
+    createdAt: (order) => [{ createdAt: order }],
+    updatedAt: (order) => [{ updatedAt: order }],
+    name: (order) => [{ name: order }],
+    // `task_priority` is a Postgres enum, which sorts in declaration order: LOW < MEDIUM < HIGH.
+    priority: (order) => [{ priority: order }],
+    dueDate: (order) => [{ dueDate: { sort: order, nulls: 'last' } }],
+    // `completedAt` is null exactly when a task isn't COMPLETED (`completedAtFor`), so nulls first
+    // puts every open task ahead of the completed ones; among open tasks, overdue dates sort first
+    // (D-038). `order` doesn't apply: reversed, it would put completed tasks on top.
+    urgency: () => [
+      { completedAt: { sort: 'desc', nulls: 'first' } },
+      { dueDate: { sort: 'asc', nulls: 'last' } },
+    ],
+  };
 
 /** Name contains the text; text shaped like a key (`web-2`) also matches that task's key. */
 function searchFilter(search: string): Prisma.TaskWhereInput {
@@ -89,7 +97,7 @@ export async function list(userId: string, query: ListTasksQuery): Promise<ListR
     prisma.task.count({ where }),
     prisma.task.findMany({
       where,
-      orderBy: [ORDER_BY[query.sort](query.order), { id: 'asc' }],
+      orderBy: [...ORDER_BY[query.sort](query.order), { id: 'asc' }],
       ...toSkipTake(query),
       select: taskDtoSelect,
     }),

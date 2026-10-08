@@ -1,16 +1,10 @@
 'use client';
 
 import { formatDate, isApiError, todayLocal, uuid, type Project } from '@tidyr/shared';
-import {
-  ArrowLeftIcon,
-  EllipsisIcon,
-  FolderXIcon,
-  ListChecksIcon,
-  PencilIcon,
-  Trash2Icon,
-} from 'lucide-react';
+import { ArrowLeftIcon, EllipsisIcon, FolderXIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { Banner } from '@/components/banner';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorState } from '@/components/error-state';
 import { RefreshButton } from '@/components/refresh-button';
@@ -23,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { errorMessage } from '@/lib/errors';
+import { ProjectTasks } from '@/features/tasks/project-tasks';
 import { ProjectDates } from './project-dates';
 import { ProjectDeleteDialog } from './project-delete-dialog';
 import { ProjectFormDialog } from './project-form-dialog';
@@ -31,7 +27,7 @@ import { useProject } from './queries';
 
 const CARD = 'rounded-md border border-neutral-200 bg-neutral-0 shadow-card';
 
-/** `/projects/[id]`: the header (P9.5) and, from Phase 10, the project's tasks. */
+/** `/projects/[id]`: the header (P9.5) and the project's tasks (Phase 10). */
 export function ProjectDetail({ id }: { id: string }) {
   // A malformed id can't exist; the API would answer 400, so skip the request (APP_FLOW §5).
   const validId = uuid.safeParse(id).success;
@@ -41,7 +37,8 @@ export function ProjectDetail({ id }: { id: string }) {
     return <ProjectNotFound />;
   }
   if (query.isPending) return <ProjectHeaderSkeleton />;
-  if (query.isError) {
+  // A failed background refetch (e.g. after a task change while offline) keeps the page.
+  if (query.isError && !query.data) {
     return (
       <ErrorState
         error={query.error}
@@ -60,26 +57,12 @@ export function ProjectDetail({ id }: { id: string }) {
         onRefresh={() => void query.refetch()}
         refreshing={query.isFetching}
       />
-      <section aria-labelledby="project-tasks" className="flex flex-col gap-3">
-        <h2 id="project-tasks" className="text-base font-semibold text-neutral-900">
-          Tasks
-        </h2>
-        <div className={CARD}>
-          {project.taskCounts.total === 0 ? (
-            <EmptyState
-              icon={ListChecksIcon}
-              title="No tasks yet."
-              description="Break this project into tasks to track progress."
-            />
-          ) : (
-            <EmptyState
-              icon={ListChecksIcon}
-              title="Task list coming soon"
-              description="This project's tasks will show up here as a list and a board."
-            />
-          )}
-        </div>
-      </section>
+      {query.isRefetchError ? (
+        <Banner tone="warning">
+          Couldn&apos;t refresh the project. {errorMessage(query.error)}
+        </Banner>
+      ) : null}
+      <ProjectTasks projectId={project.id} />
     </div>
   );
 }

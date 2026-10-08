@@ -64,6 +64,10 @@ const listTasksQuery = listTasksQuerySchema.extend({
     description: 'Relative to `today`. `overdue` excludes completed tasks; `week` is today…today+6',
   }),
   today: listTasksQuerySchema.shape.today.meta(TODAY_PARAM),
+  sort: listTasksQuerySchema.shape.sort.meta({
+    description:
+      '`priority` sorts LOW < MEDIUM < HIGH; `dueDate` puts empty dates last; `urgency` lists open tasks by due date (overdue first, no date last), then completed ones, most recent first, and ignores `order`',
+  }),
 });
 
 const dashboardQuery = dashboardQuerySchema.extend({

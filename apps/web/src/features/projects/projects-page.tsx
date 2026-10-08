@@ -2,7 +2,7 @@
 
 import { PROJECT_STATUSES, PROJECT_STATUS_LABEL, todayLocal } from '@tidyr/shared';
 import { FolderKanbanIcon, PlusIcon, SearchXIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Banner } from '@/components/banner';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorState } from '@/components/error-state';
@@ -12,6 +12,7 @@ import { RefreshButton } from '@/components/refresh-button';
 import { SearchInput } from '@/components/search-input';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/errors';
+import { useShortcuts } from '@/lib/use-shortcuts';
 import { hasProjectFilters, toProjectListParams, useProjectListState } from './list-params';
 import { ProjectCard, ProjectCardSkeleton } from './project-card';
 import { ProjectFormDialog } from './project-form-dialog';
@@ -30,6 +31,8 @@ export function ProjectsPage() {
   const { state, update } = useProjectListState();
   const query = useProjects(toProjectListParams(state));
   const [creating, setCreating] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useShortcuts({ '/': () => searchRef.current?.focus() });
   const filtered = hasProjectFilters(state);
   const today = todayLocal();
   const { data, isPlaceholderData } = query;
@@ -110,6 +113,8 @@ export function ProjectsPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <SearchInput
+          ref={searchRef}
+          shortcutHint
           value={state.search}
           onChange={(search) => update({ search }, { replace: true })}
           label="Search projects"

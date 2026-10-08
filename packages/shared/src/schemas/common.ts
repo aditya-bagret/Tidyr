@@ -13,6 +13,9 @@ export const dateOnly = z
 
 export const nullableDate = dateOnly.nullable();
 
+/** Client forms only: a cleared native date input yields `''`, which means "no date". */
+export const formDate = z.union([z.literal('').transform(() => null), dateOnly]);
+
 /** Trims first, so a whitespace-only value fails the minimum (TECHNICAL_REQUIREMENTS §7). */
 export function trimmedString(min: number, max: number) {
   return z

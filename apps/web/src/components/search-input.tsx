@@ -2,7 +2,7 @@
 
 import { cn } from 'cn';
 import { SearchIcon, XIcon } from 'lucide-react';
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useState, type Ref } from 'react';
 
 export const SEARCH_DEBOUNCE_MS = 300;
 
@@ -15,6 +15,8 @@ interface SearchInputProps {
   placeholder?: string;
   /** Shows the `/` hint (the shortcut itself is wired by the page). */
   shortcutHint?: boolean;
+  /** For the `/` shortcut, which focuses the input. */
+  ref?: Ref<HTMLInputElement>;
   className?: string;
 }
 
@@ -24,6 +26,7 @@ export function SearchInput({
   label,
   placeholder = 'Search',
   shortcutHint = false,
+  ref,
   className,
 }: SearchInputProps) {
   const [text, setText] = useState(value);
@@ -64,6 +67,7 @@ export function SearchInput({
         aria-hidden
       />
       <input
+        ref={ref}
         type="search"
         value={text}
         onChange={(event) => setText(event.target.value)}

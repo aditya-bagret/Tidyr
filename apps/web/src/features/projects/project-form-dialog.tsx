@@ -12,10 +12,10 @@ import {
   type ProjectFormValues,
 } from '@tidyr/shared';
 import { useRouter } from 'next/navigation';
-import { useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { focusInstead } from '@/components/confirm-dialog';
+import { ConfirmDialog, focusInstead } from '@/components/confirm-dialog';
 import { FormField } from '@/components/form-field';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,15 +49,26 @@ interface ProjectFormDialogProps {
   returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
-/** Create/edit project dialog (APP_FLOW F3, F4; D-019). Full screen below 640 px. */
+/**
+ * Create/edit project dialog (APP_FLOW F3, F4; D-019). Full screen below 640 px. Closing it with
+ * unsaved input asks "Discard changes?" first (APP_FLOW §7).
+ */
 export function ProjectFormDialog({
   open,
   onOpenChange,
   project,
   returnFocusRef,
 }: ProjectFormDialogProps) {
+  const [dirty, setDirty] = useState(false);
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+
+  function requestOpenChange(next: boolean) {
+    if (!next && dirty) setConfirmingDiscard(true);
+    else onOpenChange(next);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={requestOpenChange}>
       <DialogContent
         onCloseAutoFocus={(event) => focusInstead(event, returnFocusRef)}
         className="max-h-dvh overflow-y-auto max-sm:inset-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:content-start max-sm:rounded-none sm:max-w-lg"
@@ -69,8 +80,24 @@ export function ProjectFormDialog({
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so every open starts from fresh values. */}
-        <ProjectForm project={project} onDone={() => onOpenChange(false)} />
+        <ProjectForm
+          project={project}
+          onDone={() => onOpenChange(false)}
+          onDirtyChange={setDirty}
+        />
       </DialogContent>
+      <ConfirmDialog
+        open={confirmingDiscard}
+        onOpenChange={setConfirmingDiscard}
+        title="Discard changes?"
+        description="What you've entered hasn't been saved."
+        confirmLabel="Discard"
+        onConfirm={() => {
+          setConfirmingDiscard(false);
+          setDirty(false);
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 }
@@ -86,7 +113,13 @@ function defaultValues(project?: Project): ProjectFormValues {
   };
 }
 
-function ProjectForm({ project, onDone }: { project?: Project; onDone: () => void }) {
+interface ProjectFormProps {
+  project?: Project;
+  onDone: () => void;
+  onDirtyChange: (dirty: boolean) => void;
+}
+
+function ProjectForm({ project, onDone, onDirtyChange }: ProjectFormProps) {
   const router = useRouter();
   const create = useCreateProject();
   const update = useUpdateProject(project?.id ?? '');
@@ -98,6 +131,9 @@ function ProjectForm({ project, onDone }: { project?: Project; onDone: () => voi
     defaultValues: defaultValues(project),
   });
   const { register, handleSubmit, setError, setValue, control, formState } = form;
+
+  useEffect(() => onDirtyChange(formState.isDirty), [formState.isDirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
 
   async function onSubmit(values: ProjectFormOutput) {
     try {

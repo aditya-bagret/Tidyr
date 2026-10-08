@@ -5,6 +5,7 @@ import {
   AT_LEAST_ONE_FIELD_MESSAGE,
   csvEnum,
   dateOnly,
+  formDate,
   hasAtLeastOneField,
   nullableDate,
   nullableDescription,
@@ -32,10 +33,37 @@ export const updateTaskSchema = taskFields
   .refine(hasAtLeastOneField, { error: AT_LEAST_ONE_FIELD_MESSAGE });
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 
+/**
+ * Client-side form only (the web task drawer), like `projectFormSchema`: every control yields a
+ * string, an empty description or due date means none. The output is a valid `CreateTaskInput`;
+ * an edit sends just the changed field, never `projectId` (D-008).
+ */
+export const taskFormSchema = z.object({
+  projectId: z.string().min(1, { error: 'Required' }).pipe(uuid),
+  name: trimmedString(1, 200),
+  description: nullableDescription,
+  priority: z.enum(TASK_PRIORITIES),
+  status: z.enum(TASK_STATUSES),
+  dueDate: formDate,
+});
+export type TaskFormValues = z.input<typeof taskFormSchema>;
+export type TaskFormOutput = z.output<typeof taskFormSchema>;
+
 export const TASK_DUE_FILTERS = ['overdue', 'today', 'week', 'none'] as const;
 export type TaskDueFilter = (typeof TASK_DUE_FILTERS)[number];
 
-export const TASK_SORT_FIELDS = ['createdAt', 'updatedAt', 'dueDate', 'priority', 'name'] as const;
+/**
+ * `urgency` (My Tasks' default, D-038): open tasks by due date, so overdue ones come first and
+ * undated ones last, then completed tasks, most recently completed first. It ignores `order`.
+ */
+export const TASK_SORT_FIELDS = [
+  'createdAt',
+  'updatedAt',
+  'dueDate',
+  'priority',
+  'name',
+  'urgency',
+] as const;
 export type TaskSortField = (typeof TASK_SORT_FIELDS)[number];
 
 /** Search input that the API also matches as a task key, e.g. `web-12` (API_CONTRACT §6). */

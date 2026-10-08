@@ -3,7 +3,7 @@ import { PROJECT_STATUSES } from '../enums';
 import {
   AT_LEAST_ONE_FIELD_MESSAGE,
   csvEnum,
-  dateOnly,
+  formDate,
   hasAtLeastOneField,
   nullableDate,
   nullableDescription,
@@ -56,9 +56,6 @@ export const updateProjectSchema = projectFields
   .refine(hasAtLeastOneField, { error: AT_LEAST_ONE_FIELD_MESSAGE })
   .refine(isValidDateRange, dateRangeCheck);
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
-
-/** A cleared native date input yields `''`, which in a form means "no date". */
-const formDate = z.union([z.literal('').transform(() => null), dateOnly]);
 
 /**
  * Client-side form only: every control yields a string. An empty key means "let the API generate

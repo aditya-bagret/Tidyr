@@ -448,6 +448,30 @@ describe('GET /api/tasks', () => {
     ]);
   });
 
+  it('sort=urgency lists open tasks by due date (overdue first), then completed ones', async () => {
+    const completedFirst = await task({ status: 'COMPLETED', dueDate: '2026-09-01' });
+    const overdue = await task({ dueDate: '2026-10-03' });
+    const undated = await task({ dueDate: null });
+    const completed = await task({ status: 'COMPLETED', dueDate: '2026-10-30' });
+    const upcoming = await task({ dueDate: '2026-10-20' });
+    const overdueInProgress = await task({ status: 'IN_PROGRESS', dueDate: '2026-10-01' });
+    // Completed again after `completed`, so it's the most recently completed.
+    await put(completedFirst.id, { status: 'PENDING' }).expect(200);
+    await put(completedFirst.id, { status: 'COMPLETED' }).expect(200);
+
+    const expected = [overdueInProgress, overdue, upcoming, undated, completedFirst, completed];
+    expect(keysOf(await listTasks('?sort=urgency'))).toEqual(expected.map((item) => item.key));
+    // `order` doesn't apply: completed tasks never come first.
+    expect(keysOf(await listTasks('?sort=urgency&order=asc'))).toEqual(
+      expected.map((item) => item.key),
+    );
+    // Reopening a task moves it back among the open ones.
+    await put(completed.id, { status: 'PENDING' }).expect(200);
+    expect(keysOf(await listTasks('?sort=urgency&limit=5'))).toEqual(
+      [overdueInProgress, overdue, upcoming, completed, undated].map((item) => item.key),
+    );
+  });
+
   it('sorts by name, and by createdAt desc by default', async () => {
     const created = await seedTasks([{ name: 'Bravo' }, { name: 'Alpha' }, { name: 'Charlie' }]);
     // Spread the creation times so the default order can't depend on millisecond ties.
