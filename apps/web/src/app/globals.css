@@ -1,0 +1,110 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/*
+ * Values come from @tidyr/shared's design tokens: the root layout writes them onto <html> as
+ * --tidyr-* variables (lib/theme.ts), so no hex value is duplicated here.
+ */
+
+/* Only Tidyr's palette exists, so a stray `bg-slate-500` fails to style instead of drifting. */
+@theme {
+  --color-*: initial;
+}
+
+/* Dark theme is optional and comes later (DESIGN §2.1); `dark:` only applies under a .dark class. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  --color-brand-50: var(--tidyr-brand-50);
+  --color-brand-600: var(--tidyr-brand-600);
+  --color-brand-700: var(--tidyr-brand-700);
+  --color-neutral-0: var(--tidyr-neutral-0);
+  --color-neutral-50: var(--tidyr-neutral-50);
+  --color-neutral-100: var(--tidyr-neutral-100);
+  --color-neutral-200: var(--tidyr-neutral-200);
+  --color-neutral-400: var(--tidyr-neutral-400);
+  --color-neutral-600: var(--tidyr-neutral-600);
+  --color-neutral-900: var(--tidyr-neutral-900);
+  --color-danger-50: var(--tidyr-danger-50);
+  --color-danger-600: var(--tidyr-danger-600);
+  --color-warning-50: var(--tidyr-warning-50);
+  --color-warning-600: var(--tidyr-warning-600);
+  --color-success-50: var(--tidyr-success-50);
+  --color-success-600: var(--tidyr-success-600);
+  --color-info-50: var(--tidyr-info-50);
+  --color-info-600: var(--tidyr-info-600);
+  /* shadcn overlays use bg-black/…; white/black map onto the neutral ends. */
+  --color-white: var(--tidyr-neutral-0);
+  --color-black: var(--tidyr-neutral-900);
+
+  /* shadcn's semantic names, mapped onto the tokens. */
+  --color-background: var(--tidyr-neutral-50);
+  --color-foreground: var(--tidyr-neutral-900);
+  --color-card: var(--tidyr-neutral-0);
+  --color-card-foreground: var(--tidyr-neutral-900);
+  --color-popover: var(--tidyr-neutral-0);
+  --color-popover-foreground: var(--tidyr-neutral-900);
+  --color-primary: var(--tidyr-brand-600);
+  --color-primary-foreground: var(--tidyr-neutral-0);
+  --color-secondary: var(--tidyr-neutral-100);
+  --color-secondary-foreground: var(--tidyr-neutral-900);
+  --color-muted: var(--tidyr-neutral-100);
+  --color-muted-foreground: var(--tidyr-neutral-600);
+  --color-accent: var(--tidyr-neutral-100);
+  --color-accent-foreground: var(--tidyr-neutral-900);
+  --color-destructive: var(--tidyr-danger-600);
+  --color-border: var(--tidyr-neutral-200);
+  --color-input: var(--tidyr-neutral-200);
+  --color-ring: var(--tidyr-brand-600);
+
+  /*
+   * DESIGN §2.5 radius: sm 4 (lozenges) · md 8 (inputs, buttons, cards) · lg 12 (modals, drawers).
+   * shadcn's components use `rounded-lg` for controls and `rounded-xl` for overlays, so those two
+   * map onto md and lg; `rounded-4xl` (badges) is a pill.
+   */
+  --radius: var(--tidyr-radius-md);
+  --radius-sm: var(--tidyr-radius-sm);
+  --radius-md: var(--tidyr-radius-md);
+  --radius-lg: var(--tidyr-radius-md);
+  --radius-xl: var(--tidyr-radius-lg);
+  --radius-2xl: var(--tidyr-radius-lg);
+  --radius-3xl: var(--tidyr-radius-lg);
+  --radius-4xl: var(--tidyr-radius-full);
+
+  --container-content: var(--tidyr-content-max-width);
+
+  --shadow-card: var(--tidyr-shadow-card);
+  --shadow-overlay: var(--tidyr-shadow-overlay);
+  --shadow-md: var(--tidyr-shadow-overlay);
+  --shadow-lg: var(--tidyr-shadow-overlay);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  /* DESIGN §6: a 2 px brand focus ring with an offset, never removed. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
