@@ -3,6 +3,7 @@ import { PROJECT_STATUSES } from '../enums';
 import {
   AT_LEAST_ONE_FIELD_MESSAGE,
   csvEnum,
+  dateOnly,
   hasAtLeastOneField,
   nullableDate,
   nullableDescription,
@@ -14,11 +15,13 @@ import {
 
 export const PROJECT_KEY_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/;
 
+const PROJECT_KEY_MESSAGE = 'Use 2–10 letters or digits, starting with a letter';
+
 export const projectKeySchema = z
   .string()
   .trim()
   .toUpperCase()
-  .regex(PROJECT_KEY_PATTERN, { error: 'Use 2–10 letters or digits, starting with a letter' });
+  .regex(PROJECT_KEY_PATTERN, { error: PROJECT_KEY_MESSAGE });
 
 export const DATE_RANGE_MESSAGE = 'End date must be on or after start date';
 
@@ -53,6 +56,34 @@ export const updateProjectSchema = projectFields
   .refine(hasAtLeastOneField, { error: AT_LEAST_ONE_FIELD_MESSAGE })
   .refine(isValidDateRange, dateRangeCheck);
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
+/** A cleared native date input yields `''`, which in a form means "no date". */
+const formDate = z.union([z.literal('').transform(() => null), dateOnly]);
+
+/**
+ * Client-side form only: every control yields a string. An empty key means "let the API generate
+ * one" (it adds the `WR2` suffix on a clash) and an empty date means none. The output is a valid
+ * `CreateProjectInput`, and every field of an `UpdateProjectInput`.
+ */
+export const projectFormSchema = z
+  .object({
+    name: trimmedString(1, 120),
+    key: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .refine((value) => value === '' || PROJECT_KEY_PATTERN.test(value), {
+        error: PROJECT_KEY_MESSAGE,
+      })
+      .transform((value) => (value === '' ? undefined : value)),
+    description: nullableDescription,
+    status: z.enum(PROJECT_STATUSES),
+    startDate: formDate,
+    endDate: formDate,
+  })
+  .refine(isValidDateRange, dateRangeCheck);
+export type ProjectFormValues = z.input<typeof projectFormSchema>;
+export type ProjectFormOutput = z.output<typeof projectFormSchema>;
 
 export const PROJECT_SORT_FIELDS = ['createdAt', 'updatedAt', 'name', 'endDate'] as const;
 export type ProjectSortField = (typeof PROJECT_SORT_FIELDS)[number];

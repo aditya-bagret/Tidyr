@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { DashboardPlaceholder } from '@/features/dashboard/dashboard-placeholder';
+import { Dashboard } from '@/features/dashboard/dashboard';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 
 export default function DashboardPage() {
-  return <DashboardPlaceholder />;
+  return <Dashboard />;
 }

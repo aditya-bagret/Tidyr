@@ -8,6 +8,7 @@ import {
   listTasksQuerySchema,
   loginSchema,
   nullableDescription,
+  projectFormSchema,
   projectKeySchema,
   registerFormSchema,
   registerSchema,
@@ -130,6 +131,55 @@ describe('createProjectSchema (T-SH-03)', () => {
   it('caps description at 5000 characters', () => {
     expect(nullableDescription.safeParse('x'.repeat(5000)).success).toBe(true);
     expect(nullableDescription.safeParse('x'.repeat(5001)).success).toBe(false);
+  });
+});
+
+describe('projectFormSchema (web project dialog)', () => {
+  const blank = {
+    name: 'Website Redesign',
+    key: '',
+    description: '',
+    status: 'NOT_STARTED',
+    startDate: '',
+    endDate: '',
+  } as const;
+
+  it('turns empty controls into an omitted key and null description/dates', () => {
+    expect(projectFormSchema.parse(blank)).toEqual({
+      name: 'Website Redesign',
+      key: undefined,
+      description: null,
+      status: 'NOT_STARTED',
+      startDate: null,
+      endDate: null,
+    });
+  });
+
+  it('output passes createProjectSchema', () => {
+    const output = projectFormSchema.parse({ ...blank, key: ' web ', startDate: '2026-10-10' });
+    expect(output).toMatchObject({ key: 'WEB', startDate: '2026-10-10', endDate: null });
+    expect(createProjectSchema.safeParse(output).success).toBe(true);
+  });
+
+  it('keeps the key rule and message', () => {
+    const result = projectFormSchema.safeParse({ ...blank, key: 'W' });
+    expect(issuePaths(result)).toEqual(['key']);
+    expect(result.error?.issues[0]?.message).toBe(
+      'Use 2–10 letters or digits, starting with a letter',
+    );
+  });
+
+  it('rejects an end date before the start date on endDate', () => {
+    const result = projectFormSchema.safeParse({
+      ...blank,
+      startDate: '2026-10-10',
+      endDate: '2026-10-09',
+    });
+    expect(issuePaths(result)).toEqual(['endDate']);
+  });
+
+  it('requires a name', () => {
+    expect(issuePaths(projectFormSchema.safeParse({ ...blank, name: '   ' }))).toEqual(['name']);
   });
 });
 

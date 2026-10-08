@@ -5,6 +5,7 @@ import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { Logo } from '@/components/logo';
+import { RefetchBar } from '@/components/refetch-bar';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { pageTitle } from './nav-items';
@@ -79,6 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="ml-auto">
             <UserMenu />
           </div>
+          <RefetchBar />
         </header>
         <main className="mx-auto w-full max-w-content px-4 py-6 sm:px-6">{children}</main>
       </div>

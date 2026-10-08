@@ -1,5 +1,6 @@
 'use client';
 
+import type { RefObject } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,6 +20,8 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   onConfirm: () => void;
   pending?: boolean;
+  /** Where focus goes on close when the opener no longer exists (e.g. a menu item). */
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 /** Title, body, Cancel + a danger confirm with a loading state (DESIGN §3). */
@@ -30,10 +33,15 @@ export function ConfirmDialog({
   confirmLabel = 'Delete',
   onConfirm,
   pending = false,
+  returnFocusRef,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
-      <DialogContent showCloseButton={false} className="sm:max-w-md">
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md"
+        onCloseAutoFocus={(event) => focusInstead(event, returnFocusRef)}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -51,4 +59,11 @@ export function ConfirmDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Radix returns focus to the opener; when that was a menu item, send it somewhere that exists. */
+export function focusInstead(event: Event, ref: RefObject<HTMLElement | null> | undefined) {
+  if (!ref?.current) return;
+  event.preventDefault();
+  ref.current.focus();
 }
